@@ -1,12 +1,25 @@
 #include "model.h"
 using namespace std;
 
+Model::Model(const std::string &filename, const std::string &fragfile, const std::string &vertfile) : 
+	filename(filename), fragfile(fragfile), vertfile(vertfile) {
+	
+	bool s = parseObject(filename, vertices, textures, normals, faces);
+	if (!s) std::cout << "Failed to load obj: " << filename << std::endl;
+	
+	scale = glm::vec3(1, 1, 1); 
+	pos = glm::vec3(0, 0, -2);
+	rotaxis = glm::vec3(0, 1, 0);
+	rotangle = 0;
 
-void Model::initModel() {
+	initModel();
+}
+
+void Model::initModel() { 
     //Create a vertex array object and bind it so that current vao is this one
     glGenVertexArrays(1, &vao); assert(vao > 0);
     glBindVertexArray(vao);
-    
+
     //Enable attrib 0 (positions) and 1 (normals)
     glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
@@ -83,6 +96,8 @@ void Model::initModel() {
 	eyePosLoc = glGetUniformLocation(program, "eyePos");
 
 	assert(glGetError() == GL_NONE);
+
+	std::cout << "HAHAA" << std::endl;
 }
 
 void Model::render() {

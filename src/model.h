@@ -55,18 +55,7 @@ GLuint createFragmentShader(const char* shaderName);
 class Model {
 public:
 	Model() {}
-	Model(const std::string &filename, const std::string &fragfile, const std::string &vertfile) : 
-		filename(filename), fragfile(fragfile), vertfile(vertfile) {
-		bool s = parseObject(filename, vertices, textures, normals, faces);
-		if (!s) std::cout << "Failed to load obj: " << filename << std::endl;
-		
-		scale = glm::vec3(1, 1, 1); 
-		pos = glm::vec3(0, 0, -2);
-		rotaxis = glm::vec3(0, 1, 0);
-		rotangle = 0;
-		
-		initModel();
-	}
+	Model(const std::string &filename, const std::string &fragfile, const std::string &vertfile);
 
 	void render();
 

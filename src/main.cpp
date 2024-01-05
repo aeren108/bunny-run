@@ -9,7 +9,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <GL/glew.h>
-//#include <OpenGL/gl3.h>   // The GL Header File
 #include <GLFW/glfw3.h> // The GLFW header
 #include <glm/glm.hpp> // GL Math library header
 #include <glm/gtc/matrix_transform.hpp>
@@ -17,6 +16,7 @@
 
 #include "global.h"
 #include "model.h"
+#include "bunny.h"
 
 #define BUFFER_OFFSET(i) ((char*)NULL + (i))
 
@@ -28,15 +28,14 @@ glm::mat4 projectionMatrix;
 glm::mat4 viewingMatrix;
 glm::vec3 eyePos(0, 0, 0);
 
-Model bunny, ground;
+Model ground;
+Bunny* bunny;
+
 
 void init() {
     glEnable(GL_DEPTH_TEST);
-
-    bunny = Model("assets/bunny.obj", "shaders/frag.glsl", "shaders/vert.glsl");
-	bunny.pos = glm::vec3(0.f, -1.f, -1.25f);
-	bunny.scale = glm::vec3(0.2, 0.2, 0.2);
-	bunny.rotangle = - M_PI / 2;
+	
+	bunny = new Bunny();
 
 	ground = Model("assets/quad.obj", "shaders/frag.glsl", "shaders/vert.glsl");
 	ground.pos = glm::vec3(0.f, -1.f, -50.f);
@@ -70,8 +69,12 @@ void reshape(GLFWwindow* window, int w, int h) {
 	viewingMatrix = glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0) + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 }
 
-void update() {
+void checkCollisions() {
+	// TODO check collisions between bunny and checkpoints
+}
 
+void update() {
+	bunny->update();
 }
 
 void render() {
@@ -87,7 +90,7 @@ void render() {
 	modelingMatrix = matT * matRz * matR;*/
 
 	ground.render();
-    bunny.render();
+    bunny->render();
 }
 
 void gameLoop(GLFWwindow* window) {
@@ -145,6 +148,8 @@ int main(int argc, char** argv) {
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
+
+	delete bunny;
 
 	return 0;
 }
