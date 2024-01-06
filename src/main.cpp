@@ -6,6 +6,8 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <algorithm>
+#include <random>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <GL/glew.h>
@@ -18,6 +20,7 @@
 #include "model.h"
 #include "bunny.h"
 #include "checkpoint.h"
+#include "font.h"
 
 #define BUFFER_OFFSET(i) ((char*)NULL + (i))
 
@@ -38,12 +41,15 @@ bool lefthold = false;
 bool righthold = false;
 
 int score = 0;
+std::string scoretext = "SCORE: ";
+
+void reset();
 
 void init() {
     glEnable(GL_DEPTH_TEST);
 	
+
 	bunny = new Bunny();
-	bunny->velocity.z = -0.01f;
 
 	ground = Model("assets/quad.obj", "shaders/ground_frag.glsl", "shaders/ground_vert.glsl");
 	ground.pos = glm::vec3(0.f, -1.f, -50.f);
@@ -57,16 +63,12 @@ void init() {
 	for (int i = 0; i < 3; ++i) {
 		int pi = 1 - i;
 
-		checkpoints[i] = new Checkpoint(false);
-		checkpoints[i]->position.x = 0.f + pi * 1.25f;
+		checkpoints[i] = new Checkpoint(i == 0 ? false : true);
+		checkpoints[i]->position.x = 0.f + pi * 1.5f;
 		checkpoints[i]->position.z = -CP_BUNNY_DIST;
 	}
 
-	
-}
-
-void reset() {
-
+	initFonts(gWidth, gHeight);
 }
 
 void keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -103,9 +105,26 @@ void reshape(GLFWwindow* window, int w, int h) {
 	viewingMatrix = glm::lookAt(eyePos, eyePos + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 }
 
+void regenerateCheckpoints() {
+	std::random_device rd;
+    std::mt19937 rng(rd());
+
+	std::shuffle(std::begin(checkpoints), std::end(checkpoints), rng);
+
+	for (int i = 0; i < 3; ++i) {
+		int pi = 1 - i;
+		checkpoints[i]->position.x = 0.f + pi * 1.5f;
+		checkpoints[i]->position.z = -CP_BUNNY_DIST + bunny->position.z ;
+		checkpoints[i]->setActive(true);
+	}
+}
 
 void checkCollisions() {
 	for (Checkpoint* cp : checkpoints) {
+		if (!cp->isActive()) {
+			continue;
+		}
+
 		glm::vec3 cpMax = cp->getMaxPos();
 		glm::vec3 cpMin = cp->getMinPos();
 		glm::vec3 cpCen = cp->getCenter();
@@ -119,10 +138,17 @@ void checkCollisions() {
 
 		bool collision = collisionX && collisionY && collisionZ;
 
-		if (!collision) continue;
+		if (!collision) {
+			if (cp->position.z > bunny->position.z + 1.f)
+				regenerateCheckpoints();
+			
+			continue;
+		}
 
 		if (cp->isHostile()) {
+			cp->setActive(false);
 			bunny->setState(Bunny::DEAD);
+			cp->position.z = 100.f;
 			std::cout << "CP Min: " << cpMin.x << ", " << cpMin.y << ", " << cpMin.z << std::endl;
 			std::cout << "CP Max: " << cpMax.x << ", " << cpMax.y << ", " << cpMax.z << std::endl;
 			std::cout << "CP Cen: " << cpCen.x << ", " << cpCen.y << ", " << cpCen.z << std::endl;
@@ -134,8 +160,12 @@ void checkCollisions() {
 
 			std::cout << "!!!!! COLLISION !!!!!" << std::endl;
 		} else {
+			cp->setActive(false);
 			bunny->setState(Bunny::HAPPY);
-			score += 10;
+			
+
+			score += 1000;
+			std::cout << "SCORE: " + score << score << std::endl;
 		}
 	}
 }
@@ -160,6 +190,10 @@ void update() {
 	// std::cout << "checkpoint: " << checkpoints[1]->position.x << "," << checkpoints[1]->position.y << ", " << checkpoints[1]->position.z << std::endl;
 	// std::cout << "bunny: " << bunny->position.x << ","  << bunny->position.y << ", " << bunny->position.z << std::endl;
 
+	score++;
+	scoretext = "SCORE: ";
+	scoretext += std::to_string(score);
+
 	//update camera pos
 	eyePos.z = bunny->position.z + CAMERA_BUNNY_DIST;
 	viewingMatrix = glm::lookAt(eyePos, eyePos + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
@@ -174,6 +208,18 @@ void render() {
 	ground.render();
     bunny->render();
 	for (Checkpoint* cp : checkpoints) cp->render();
+
+	
+	renderText(scoretext, 0, gHeight - 20, 1, glm::vec3(0, 1, 1));
+	
+	assert(glGetError() == GL_NO_ERROR);
+}
+
+void reset() {
+	regenerateCheckpoints();
+	bunny->reset();
+	
+	score = 0;
 }
 
 void gameLoop(GLFWwindow* window) {
@@ -191,11 +237,13 @@ int main(int argc, char** argv) {
 		exit(-1);
 	}
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
 
 	int width = 1000, height = 800;
+	gWidth = width; gHeight = height;
 	window = glfwCreateWindow(width, height, "Simple Example", NULL, NULL);
 
 	if (!window) {

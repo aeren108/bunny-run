@@ -5,7 +5,7 @@ Bunny::Bunny() {
     model = Model("assets/bunny.obj", "shaders/bunny_frag.glsl", "shaders/bunny_vert.glsl");
 
     position = glm::vec3(0.f, MIN_IDLE_Y, -CAMERA_BUNNY_DIST);
-    velocity = glm::vec3(0.f, 0.f, 0.f);
+    velocity = glm::vec3(0.f, 0.f, INITIAL_VELZ);
 
 	model.scale = glm::vec3(0.175, 0.175, 0.175);
 	model.rotangle = - M_PI / 2;
@@ -27,6 +27,10 @@ void Bunny::update() {
                 idleUp = true;
             }
         }
+
+        velocity.z -= 0.0001f;
+        hopVel += 0.00001f;
+        happyAngVel += 0.0001f;
     }
 
     if (state == Bunny::HAPPY) {
@@ -41,7 +45,7 @@ void Bunny::update() {
     } else if (state == Bunny::DEAD) {
         model.rotaxis = glm::vec3(1.f, 0.f, 1.f);
         model.rotangle = - M_PI / 2;
-        velocity.y = 0;
+        velocity = glm::vec3(0.f);
     }
 
     //Check boundary collisions
@@ -55,6 +59,17 @@ void Bunny::update() {
 
 void Bunny::render() {
     model.render();
+}
+
+void Bunny::reset() {
+    setState(Bunny::IDLE);
+    model.rotaxis = glm::vec3(0.f, 1.f, 0.f);
+    model.rotangle = - M_PI / 2;
+    
+
+    velocity = glm::vec3(0.f, 0.f, INITIAL_VELZ);
+    hopVel = INITIAL_HOP_VEL;
+    happyAngVel = INITIAL_HAPPY_ANGVEL;
 }
 
 void Bunny::setState(int state) {

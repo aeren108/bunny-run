@@ -6,7 +6,7 @@
 #define ENTITY_Y -0.97f
 
 #define CAMERA_BUNNY_DIST 1.35f
-#define CP_BUNNY_DIST 10.f
+#define CP_BUNNY_DIST 15.f
 #define BUNNY_LEFT_VEL -0.05f
 #define BUNNY_RIGHT_VEL -BUNNY_LEFT_VEL
 

@@ -4,7 +4,6 @@
 #include "entity.h"
 #include "model.h"
 
-#define INITIAL_VELZ 0.0f;
 #define OFFSET_Y 0.95f
 
 class Checkpoint : public GameEntity {
@@ -15,12 +14,13 @@ public:
     void update();
     void render();
 
+    void setActive(bool active) { this->active = active; }
     bool isActive() { return active; }
     bool isHostile() { return hostile; }
 
 private:
 
-    float velZ = INITIAL_VELZ;
+    float velZ = 0;
     bool active = true;
     bool hostile;
 };
