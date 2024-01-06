@@ -1,20 +1,19 @@
+#include "global.h"
 #include "bunny.h"
 
 Bunny::Bunny() {
-    model = Model("assets/bunny.obj", "shaders/frag.glsl", "shaders/vert.glsl");
+    model = Model("assets/bunny.obj", "shaders/frag2.glsl", "shaders/vert2.glsl");
 
-    position = glm::vec3(0.f, -0.95f, -1.35f);
+    position = glm::vec3(0.f, MIN_IDLE_Y, -CAMERA_BUNNY_DIST);
     velocity = glm::vec3(0.f, 0.f, 0.f);
 
-    model.pos = position;
 	model.scale = glm::vec3(0.175, 0.175, 0.175);
 	model.rotangle = - M_PI / 2;
+    model.pos = position;
 }
 
 void Bunny::update() {
-    position += velocity;
-
-    if (state == Bunny::IDLE) {
+    if (state != DEAD) {
         if (idleUp) {
             velocity.y = hopVel;
             if (position.y + velocity.y >= MAX_IDLE_Y) {
@@ -28,7 +27,9 @@ void Bunny::update() {
                 idleUp = true;
             }
         }
-    } else if (state == Bunny::HAPPY) {
+    }
+
+    if (state == Bunny::HAPPY) {
         model.rotangle += happyAngVel;
 
         totalRotation += happyAngVel;
@@ -42,7 +43,13 @@ void Bunny::update() {
         model.rotangle = - M_PI / 2;
     }
 
-    model.pos = this->position;
+    //Check boundary collisions
+    if (position.x + velocity.x > groundLeft - 0.5f && position.x + velocity.x < groundRight + 0.5f)
+        position.x += velocity.x;
+
+    position.y += velocity.y;
+    position.z += velocity.z;
+    model.pos = position;
 }
 
 void Bunny::render() {
@@ -55,3 +62,5 @@ void Bunny::setState(int state) {
 
     this->state = state;
 }
+
+int Bunny::getState() { return state; }

@@ -61,9 +61,12 @@ public:
 
 	glm::vec3 scale;
 	glm::vec3 pos;
-	glm::vec3 rotaxis; //TODO handle rotation
+	glm::vec3 rotaxis;
 	float rotangle;
 
+	glm::vec4 maxpos;
+	glm::vec4 minpos;
+	glm::vec4 center;
 private:
 	void initModel();
 
@@ -84,6 +87,9 @@ private:
 	GLint eyePosLoc;
 
 	glm::mat4 modelingMatrix;
+	glm::vec4 maxpos_;
+	glm::vec4 minpos_;
+	glm::vec4 center_;
 
 	int normalDataOffset;
 };

@@ -1,27 +1,26 @@
+#pragma once
+
+#include "global.h"
+#include "entity.h"
 #include "model.h"
 
-class Checkpoint {
+#define INITIAL_VELZ 0.0f;
+#define OFFSET_Y 0.95f
+
+class Checkpoint : public GameEntity {
 
 public:
-    Checkpoint(bool hostile) : hostile(hostile) {
-        //TODO define model based on hostile parameter
-    }
+    Checkpoint(bool hostile);
 
     void update();
     void render();
 
-    bool isActive();
-    bool isHostile();
+    bool isActive() { return active; }
+    bool isHostile() { return hostile; }
 
 private:
 
-    const Model model;
-
+    float velZ = INITIAL_VELZ;
     bool active = true;
     bool hostile;
-
-    glm::vec3 position;
-    glm::vec3 velocity;
-    
-    glm::vec4 boundingBox; //TODO: set bounding box
-}
+};

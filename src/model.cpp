@@ -40,10 +40,21 @@ void Model::initModel() {
 	GLfloat* normalData = new GLfloat[normals.size() * 3];
 	GLuint* indexData = new GLuint[faces.size() * 3];
 
-    for (int i = 0; i < vertices.size(); ++i) {
+	float minX = 1e6, maxX = -1e6;
+	float minY = 1e6, maxY = -1e6;
+	float minZ = 1e6, maxZ = -1e6;
+
+	for (int i = 0; i < vertices.size(); ++i) {
 		vertexData[3 * i] = vertices[i].x;
 		vertexData[3 * i + 1] = vertices[i].y;
 		vertexData[3 * i + 2] = vertices[i].z;
+
+		minX = std::min(minX, vertices[i].x);
+		maxX = std::max(maxX, vertices[i].x);
+		minY = std::min(minY, vertices[i].y);
+		maxY = std::max(maxY, vertices[i].y);
+		minZ = std::min(minZ, vertices[i].z);
+		maxZ = std::max(maxZ, vertices[i].z);
 	}
 
     for (int i = 0; i < normals.size(); ++i) {
@@ -57,6 +68,21 @@ void Model::initModel() {
 		indexData[3 * i + 1] = faces[i].vIndex[1];
 		indexData[3 * i + 2] = faces[i].vIndex[2];
 	}
+
+	minpos_.x = minX; minpos_.y = minY; minpos_.z = minZ; minpos_.w = 1;
+	maxpos_.x = maxX; maxpos_.y = maxY; maxpos_.z = maxZ; minpos_.w = 1;
+	center_ = (maxpos_ + minpos_) * 0.5f; center_.w = 1;
+
+	glm::mat4 matT = glm::translate(glm::mat4(1.0), pos);
+ 	glm::mat4 matSTi = glm::translate(glm::mat4(1.0), glm::vec3(center_));
+	glm::mat4 matS = glm::scale(glm::mat4(1.0), scale);
+	glm::mat4 matST = glm::translate(glm::mat4(1.0), -glm::vec3(center_));
+	glm::mat4 matR = glm::rotate<float>(glm::mat4(1.0), rotangle, rotaxis);
+	modelingMatrix = matT * matS * matR * matST;
+
+	minpos = modelingMatrix * minpos_;
+	maxpos = modelingMatrix * maxpos_;
+	center = modelingMatrix * center_;
 
     //Fill vbo buffer (positions, normals) and ebo (face indices)
     glBufferData(GL_ARRAY_BUFFER, vertexDataSize + normalDataSize, 0, GL_STATIC_DRAW);
@@ -96,8 +122,6 @@ void Model::initModel() {
 	eyePosLoc = glGetUniformLocation(program, "eyePos");
 
 	assert(glGetError() == GL_NONE);
-
-	std::cout << "HAHAA" << std::endl;
 }
 
 void Model::render() {
@@ -109,9 +133,17 @@ void Model::render() {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(normalDataOffset));
 
 	glm::mat4 matT = glm::translate(glm::mat4(1.0), pos);
+ 	glm::mat4 matSTi = glm::translate(glm::mat4(1.0), glm::vec3(center_));
 	glm::mat4 matS = glm::scale(glm::mat4(1.0), scale);
+	glm::mat4 matST = glm::translate(glm::mat4(1.0), -glm::vec3(center_));
 	glm::mat4 matR = glm::rotate<float>(glm::mat4(1.0), rotangle, rotaxis);
-	modelingMatrix = matT * matS * matR; // starting from right side, rotate around Y to turn back, then rotate around Z some more at each frame, then translate.
+	modelingMatrix = matT * matS * matR * matST; // starting from right side, rotate around Y to turn back, then rotate around Z some more at each frame, then translate.
+
+	minpos = modelingMatrix * minpos_;
+	maxpos = modelingMatrix * maxpos_;
+	center = modelingMatrix * center_;
+	
+	std::cout << filename << ": " << center.x << ","  << center.y << ", " << center.z << std::endl;
 
 	glUseProgram(program);
 	glUniformMatrix4fv(projectionMatrixLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
