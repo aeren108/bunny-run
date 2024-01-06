@@ -7,9 +7,9 @@
 #define MIN_IDLE_Y ENTITY_Y + 0.21f
 #define MAX_IDLE_Y MIN_IDLE_Y + 0.1f
 
-#define INITIAL_VELZ -0.05f
-#define INITIAL_HOP_VEL 0.005f
-#define INITIAL_HAPPY_ANGVEL 0.1f
+#define INITIAL_VELZ -0.085f
+#define INITIAL_HOP_VEL 0.0085f
+#define INITIAL_HAPPY_ANGVEL 0.15f
 #define INITIAL_ROTANGLE - M_PI / 2
 
 class Bunny : public GameEntity {

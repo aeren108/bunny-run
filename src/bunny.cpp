@@ -10,6 +10,7 @@ Bunny::Bunny() {
 	model.scale = glm::vec3(0.175, 0.175, 0.175);
 	model.rotangle = - M_PI / 2;
     model.pos = position;
+    
 }
 
 void Bunny::update() {
@@ -28,7 +29,7 @@ void Bunny::update() {
             }
         }
 
-        velocity.z -= 0.0001f;
+        velocity.z -= 0.0002f;
         hopVel += 0.00001f;
         happyAngVel += 0.0001f;
     }
@@ -43,8 +44,7 @@ void Bunny::update() {
             totalRotation = 0;
         }
     } else if (state == Bunny::DEAD) {
-        model.rotaxis = glm::vec3(1.f, 0.f, 1.f);
-        model.rotangle = - M_PI / 2;
+        model.rotangle_alt = M_PI / 2;
         velocity = glm::vec3(0.f);
     }
 
@@ -65,7 +65,7 @@ void Bunny::reset() {
     setState(Bunny::IDLE);
     model.rotaxis = glm::vec3(0.f, 1.f, 0.f);
     model.rotangle = - M_PI / 2;
-    
+    model.rotangle_alt = 0;
 
     velocity = glm::vec3(0.f, 0.f, INITIAL_VELZ);
     hopVel = INITIAL_HOP_VEL;

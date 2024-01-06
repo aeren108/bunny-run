@@ -26,6 +26,8 @@ void main(void)
 	// coordinates. fragWorldPos and fragWorldNor are the interpolated
 	// coordinates by the rasterizer.
 
+	lightPos = eyePos + lightPos;
+
 	vec3 L = normalize(lightPos - vec3(fragWorldPos));
 	vec3 V = normalize(eyePos - vec3(fragWorldPos));
 	vec3 H = normalize(L + V);

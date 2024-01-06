@@ -62,7 +62,9 @@ public:
 	glm::vec3 scale;
 	glm::vec3 pos;
 	glm::vec3 rotaxis;
+	glm::vec3 rotaxis_alt;
 	float rotangle;
+	float rotangle_alt;
 
 	glm::vec4 maxpos;
 	glm::vec4 minpos;

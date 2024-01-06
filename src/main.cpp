@@ -43,6 +43,10 @@ bool righthold = false;
 int score = 0;
 std::string scoretext = "SCORE: ";
 
+glm::vec3 yellowtext(1, 1, 0);
+glm::vec3 redtext(1, 0, 0);
+glm::vec3 curcolor = yellowtext;
+
 void reset();
 
 void init() {
@@ -159,13 +163,13 @@ void checkCollisions() {
 			std::cout << "BN Pos: " << bunny->position.x << ", " << bunny->position.y << ", " << bunny->position.z << std::endl;
 
 			std::cout << "!!!!! COLLISION !!!!!" << std::endl;
+			curcolor = redtext;
 		} else {
 			cp->setActive(false);
 			bunny->setState(Bunny::HAPPY);
 			
-
 			score += 1000;
-			std::cout << "SCORE: " + score << score << std::endl;
+			std::cout << scoretext << std::endl;
 		}
 	}
 }
@@ -190,7 +194,8 @@ void update() {
 	// std::cout << "checkpoint: " << checkpoints[1]->position.x << "," << checkpoints[1]->position.y << ", " << checkpoints[1]->position.z << std::endl;
 	// std::cout << "bunny: " << bunny->position.x << ","  << bunny->position.y << ", " << bunny->position.z << std::endl;
 
-	score++;
+	if (bunny->getState() != Bunny::DEAD)
+		score++;
 	scoretext = "SCORE: ";
 	scoretext += std::to_string(score);
 
@@ -210,7 +215,7 @@ void render() {
 	for (Checkpoint* cp : checkpoints) cp->render();
 
 	
-	renderText(scoretext, 0, gHeight - 20, 1, glm::vec3(0, 1, 1));
+	renderText(scoretext, 0, gHeight - 40, 1, curcolor);
 	
 	assert(glGetError() == GL_NO_ERROR);
 }
@@ -220,6 +225,7 @@ void reset() {
 	bunny->reset();
 	
 	score = 0;
+	curcolor = yellowtext;
 }
 
 void gameLoop(GLFWwindow* window) {

@@ -1,7 +1,7 @@
 #include "font.h"
 
 GLuint fontProgram;
-GLuint gTextVBO;
+GLuint gTextVBO, textVoa;
 std::map<GLchar, Character> Characters;
 
 void initFonts(int windowWidth, int windowHeight) {
@@ -105,15 +105,19 @@ void initFonts(int windowWidth, int windowHeight) {
     //
     // Configure VBO for texture quads
     //
+    glGenVertexArrays(1, &textVoa); assert(textVoa > 1);
+    glBindVertexArray(textVoa);
+    glEnableVertexAttribArray(2);
+
     glGenBuffers(1, &gTextVBO);
     glBindBuffer(GL_ARRAY_BUFFER, gTextVBO);
-     assert(glGetError() == GL_NONE);
+
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
- assert(glGetError() == GL_NONE);
-    glEnableVertexAttribArray(2);
-     assert(glGetError() == GL_NONE);
+
+    
+
     glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
- assert(glGetError() == GL_NONE);
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     assert(glGetError() == GL_NONE);
@@ -152,6 +156,7 @@ void renderText(const std::string& text, GLfloat x, GLfloat y, GLfloat scale, gl
         glBindTexture(GL_TEXTURE_2D, ch.TextureID);
 
         // Update content of VBO memory
+        glBindVertexArray(textVoa);
         glBindBuffer(GL_ARRAY_BUFFER, gTextVBO);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // Be sure to use glBufferSubData and not glBufferData
 

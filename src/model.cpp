@@ -12,23 +12,25 @@ Model::Model(const std::string &filename, const std::string &fragfile, const std
 	rotaxis = glm::vec3(0, 1, 0);
 	rotangle = 0;
 
+	rotangle_alt = 0;
+	rotaxis_alt = glm::vec3(0, 0, -1);
+
 	initModel();
 }
 
 void Model::initModel() { 
     //Create a vertex array object and bind it so that current vao is this one
-	assert(glGetError() == GL_NONE);
+
     glGenVertexArrays(1, &vao); assert(vao > 0);
-	assert(glGetError() == GL_NONE);
     glBindVertexArray(vao);
-assert(glGetError() == GL_NONE);
+
     //Enable attrib 0 (positions) and 1 (normals)
     glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-assert(glGetError() == GL_NONE);
+
     glGenBuffers(1, &vbo); //Create vertex buffer object (store positions and colors)
     glGenBuffers(1, &ebo); //Create element buffer object (store vertex ids for faces)
-assert(glGetError() == GL_NONE);
+
     //Bind vbo and ebo so that current vbo and ebo are the one we created
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
@@ -80,7 +82,11 @@ assert(glGetError() == GL_NONE);
 	glm::mat4 matS = glm::scale(glm::mat4(1.0), scale);
 	glm::mat4 matST = glm::translate(glm::mat4(1.0), -glm::vec3(center_));
 	glm::mat4 matR = glm::rotate<float>(glm::mat4(1.0), rotangle, rotaxis);
-	modelingMatrix = matT * matS * matR * matST;
+	glm::mat4 matR_alt = glm::rotate<float>(glm::mat4(1.0), rotangle_alt, rotaxis_alt);
+	glm::mat4 matT_ra = glm::translate(glm::mat4(1.0), -glm::vec3(shift_alt))
+	glm::mat4 matT_rai = glm::translate(glm::mat4(1.0), glm::vec3(shift_alt))
+
+	modelingMatrix = matT * matS * matT_rai * matR_alt * matT_ra * matR * matST;
 
 	dimensions.x = dimensions_.x * scale.x; 
 	dimensions.y = dimensions_.y * scale.y; 
@@ -89,7 +95,7 @@ assert(glGetError() == GL_NONE);
 	center = modelingMatrix * center_;
 	minpos = center - dimensions * 0.5f;
 	maxpos = center + dimensions * 0.5f;
-assert(glGetError() == GL_NONE);
+
     //Fill vbo buffer (positions, normals) and ebo (face indices)
     glBufferData(GL_ARRAY_BUFFER, vertexDataSize + normalDataSize, 0, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, vertexDataSize, vertexData);
@@ -100,19 +106,19 @@ assert(glGetError() == GL_NONE);
 	delete[] vertexData;
 	delete[] normalData;
 	delete[] indexData;
-assert(glGetError() == GL_NONE);
+
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexDataSize));
-assert(glGetError() == GL_NONE);
+
 	//Init shaders
 	program = glCreateProgram();
-assert(glGetError() == GL_NONE);
+
 	GLuint vs1 = createVertexShader(vertfile.c_str());
 	GLuint fs1 = createFragmentShader(fragfile.c_str());
-assert(glGetError() == GL_NONE);
+
 	glAttachShader(program, vs1);
 	glAttachShader(program, fs1);
-assert(glGetError() == GL_NONE);
+
 	glLinkProgram(program);
 	GLint status;
 	glGetProgramiv(program, GL_LINK_STATUS, &status);
@@ -121,14 +127,14 @@ assert(glGetError() == GL_NONE);
 		cout << "Program link failed" << endl;
 		exit(-1);
 	}
-assert(glGetError() == GL_NONE);
+
 	modelingMatrixLoc = glGetUniformLocation(program, "modelingMatrix");
 	viewingMatrixLoc = glGetUniformLocation(program, "viewingMatrix");
 	projectionMatrixLoc = glGetUniformLocation(program, "projectionMatrix");
 	eyePosLoc = glGetUniformLocation(program, "eyePos");
 
 	std::cout << filename << std::endl;
-	assert(glGetError() == GL_NONE);
+
 	std::cout << filename << std::endl;
 }
 
@@ -142,9 +148,13 @@ void Model::render() {
 
 	glm::mat4 matT = glm::translate(glm::mat4(1.0), pos);
 	glm::mat4 matS = glm::scale(glm::mat4(1.0), scale);
-	glm::mat4 matST = glm::translate(glm::mat4(1.0),  -glm::vec3(center_));
+	glm::mat4 matST = glm::translate(glm::mat4(1.0), -glm::vec3(center_));
 	glm::mat4 matR = glm::rotate<float>(glm::mat4(1.0), rotangle, rotaxis);
-	modelingMatrix = matT * matS * matR * matST; // starting from right side, rotate around Y to turn back, then rotate around Z some more at each frame, then translate.
+	glm::mat4 matR_alt = glm::rotate<float>(glm::mat4(1.0), rotangle_alt, rotaxis_alt);
+	glm::mat4 matT_ra = glm::translate(glm::mat4(1.0), -glm::vec3(shift_alt))
+	glm::mat4 matT_rai = glm::translate(glm::mat4(1.0), glm::vec3(shift_alt))
+	
+	modelingMatrix = matT * matS * matT_rai * matR_alt * matT_ra * matR * matST;// starting from right side, rotate around Y to turn back, then rotate around Z some more at each frame, then translate.
 
 	dimensions.x = dimensions_.x * scale.x; 
 	dimensions.y = dimensions_.y * scale.y; 

@@ -11,7 +11,7 @@ vec3 Iamb = vec3(0.7, 0.7, 0.7); // ambient light intensity
 vec3 kd = vec3(0.7, 0.6, 0.1);     // diffuse reflectance coefficient
 vec3 ka = vec3(0.3, 0.3, 0.3);   // ambient reflectance coefficient
 vec3 ks = vec3(0.7, 0.7, 0.7);   // specular reflectance coefficient
-vec3 lightPos = vec3(5, 5, 5);   // light position in world coordinates
+vec3 lightPos = vec3(5, 5, 3);   // light position in world coordinates
 
 uniform vec3 eyePos;
 
@@ -25,6 +25,8 @@ void main(void)
 	// Compute lighting. We assume lightPos and eyePos are in world
 	// coordinates. fragWorldPos and fragWorldNor are the interpolated
 	// coordinates by the rasterizer.
+
+	lightPos = eyePos + lightPos;
 
 	vec3 L = normalize(lightPos - vec3(fragWorldPos));
 	vec3 V = normalize(eyePos - vec3(fragWorldPos));
