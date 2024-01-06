@@ -69,20 +69,19 @@ void Model::initModel() {
 		indexData[3 * i + 2] = faces[i].vIndex[2];
 	}
 
-	minpos_.x = minX; minpos_.y = minY; minpos_.z = minZ; minpos_.w = 1;
-	maxpos_.x = maxX; maxpos_.y = maxY; maxpos_.z = maxZ; minpos_.w = 1;
-	center_ = (maxpos_ + minpos_) * 0.5f; center_.w = 1;
+	minpos_.x = minX; minpos_.y = minY; minpos_.z = minZ; 
+	maxpos_.x = maxX; maxpos_.y = maxY; maxpos_.z = maxZ;
+	center_ = (maxpos_ + minpos_) * 0.5f;
 
 	glm::mat4 matT = glm::translate(glm::mat4(1.0), pos);
- 	glm::mat4 matSTi = glm::translate(glm::mat4(1.0), glm::vec3(center_));
 	glm::mat4 matS = glm::scale(glm::mat4(1.0), scale);
-	glm::mat4 matST = glm::translate(glm::mat4(1.0), -glm::vec3(center_));
+	glm::mat4 matST = glm::translate(glm::mat4(1.0), -center_);
 	glm::mat4 matR = glm::rotate<float>(glm::mat4(1.0), rotangle, rotaxis);
 	modelingMatrix = matT * matS * matR * matST;
 
-	minpos = modelingMatrix * minpos_;
-	maxpos = modelingMatrix * maxpos_;
-	center = modelingMatrix * center_;
+	minpos = glm::mat3(modelingMatrix) * minpos_;
+	maxpos = glm::mat3(modelingMatrix) * maxpos_;
+	center = glm::mat3(modelingMatrix) * center_;
 
     //Fill vbo buffer (positions, normals) and ebo (face indices)
     glBufferData(GL_ARRAY_BUFFER, vertexDataSize + normalDataSize, 0, GL_STATIC_DRAW);
@@ -133,15 +132,15 @@ void Model::render() {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(normalDataOffset));
 
 	glm::mat4 matT = glm::translate(glm::mat4(1.0), pos);
- 	glm::mat4 matSTi = glm::translate(glm::mat4(1.0), glm::vec3(center_));
+ 	glm::mat4 matSTi = glm::translate(glm::mat4(1.0), center_);
 	glm::mat4 matS = glm::scale(glm::mat4(1.0), scale);
-	glm::mat4 matST = glm::translate(glm::mat4(1.0), -glm::vec3(center_));
+	glm::mat4 matST = glm::translate(glm::mat4(1.0), -center_);
 	glm::mat4 matR = glm::rotate<float>(glm::mat4(1.0), rotangle, rotaxis);
 	modelingMatrix = matT * matS * matR * matST; // starting from right side, rotate around Y to turn back, then rotate around Z some more at each frame, then translate.
 
-	minpos = modelingMatrix * minpos_;
-	maxpos = modelingMatrix * maxpos_;
-	center = modelingMatrix * center_;
+	minpos = glm::mat3(modelingMatrix) * minpos_;
+	maxpos = glm::mat3(modelingMatrix) * maxpos_;
+	center = glm::mat3(modelingMatrix) * center_;
 	
 	std::cout << filename << ": " << center.x << ","  << center.y << ", " << center.z << std::endl;
 

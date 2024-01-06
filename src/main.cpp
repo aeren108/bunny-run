@@ -55,9 +55,11 @@ void init() {
 	groundRight = ground.maxpos.x;
 	
 	for (int i = 0; i < 3; ++i) {
+		int pi = 1 - i;
+
 		checkpoints[i] = new Checkpoint(true);
-		checkpoints[i]->position.x = 0.f;
-		checkpoints[i]->position.z = bunny->position.z;
+		checkpoints[i]->position.x = 0.f + pi * 1.25f;
+		checkpoints[i]->position.z = -CP_BUNNY_DIST;
 	}
 
 	
@@ -103,7 +105,39 @@ void reshape(GLFWwindow* window, int w, int h) {
 
 
 void checkCollisions() {
-	// TODO check collisions between bunny and checkpoints
+	for (Checkpoint* cp : checkpoints) {
+		glm::vec3 cpMax = cp->getMaxPos();
+		glm::vec3 cpMin = cp->getMinPos();
+		glm::vec3 cpCen = cp->getCenter();
+		glm::vec3 bnMin = bunny->getMinPos();
+		glm::vec3 bnMax = bunny->getMaxPos();
+		glm::vec3 bnCen = bunny->getCenter();
+
+		bool collisionX = cpMax.x >= bnMin.x && cpMin.x <= bnMax.x;
+    	bool collisionY = cpMax.y >= bnMin.y && cpMin.y <= bnMax.y;
+    	bool collisionZ = cpMax.z >= bnMin.z && cpMin.z <= bnMax.z;
+
+		bool collision = collisionX && collisionY && collisionZ;
+
+		if (!collision) continue;
+
+		if (cp->isHostile()) {
+			bunny->setState(Bunny::DEAD);
+			std::cout << "CP Min: " << cpMin.x << ", " << cpMin.y << ", " << cpMin.z << std::endl;
+			std::cout << "CP Max: " << cpMax.x << ", " << cpMax.y << ", " << cpMax.z << std::endl;
+			std::cout << "CP Cen: " << cpCen.x << ", " << cpCen.y << ", " << cpCen.z << std::endl;
+			std::cout << "CP Pos: " << cp->position.x << ", " << cp->position.y << ", " << cp->position.z << std::endl;
+			std::cout << "BN Min: " << bnMin.x << ", " << bnMin.y << ", " << bnMin.z << std::endl;
+			std::cout << "BN Max: " << bnMax.x << ", " << bnMax.y << ", " << bnMax.z << std::endl;
+			std::cout << "BN Cen: " << bnCen.x << ", " << bnCen.y << ", " << bnCen.z << std::endl;
+			std::cout << "BN Pos: " << bunny->position.x << ", " << bunny->position.y << ", " << bunny->position.z << std::endl;
+
+			std::cout << "!!!!! COLLISION !!!!!" << std::endl;
+		} else {
+			bunny->setState(Bunny::HAPPY);
+			score += 10;
+		}
+	}
 }
 
 void update() {
@@ -119,10 +153,12 @@ void update() {
 	bunny->update();
 	for (Checkpoint* cp : checkpoints) cp->update();
 	
+	checkCollisions();
+
 	//update ground
 	ground.pos.z += bunny->velocity.z;
-	std::cout << "checkpoint: " << checkpoints[1]->position.x << "," << checkpoints[1]->position.y << ", " << checkpoints[1]->position.z << std::endl;
-	std::cout << "bunny: " << bunny->position.x << ","  << bunny->position.y << ", " << bunny->position.z << std::endl;
+	// std::cout << "checkpoint: " << checkpoints[1]->position.x << "," << checkpoints[1]->position.y << ", " << checkpoints[1]->position.z << std::endl;
+	// std::cout << "bunny: " << bunny->position.x << ","  << bunny->position.y << ", " << bunny->position.z << std::endl;
 
 	//update camera pos
 	eyePos.z = bunny->position.z + CAMERA_BUNNY_DIST;
