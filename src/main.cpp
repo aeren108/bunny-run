@@ -45,7 +45,7 @@ void init() {
 	bunny = new Bunny();
 	bunny->velocity.z = -0.01f;
 
-	ground = Model("assets/quad.obj", "shaders/frag.glsl", "shaders/vert.glsl");
+	ground = Model("assets/quad.obj", "shaders/ground_frag.glsl", "shaders/ground_vert.glsl");
 	ground.pos = glm::vec3(0.f, -1.f, -50.f);
 	ground.scale = glm::vec3(2.f, 1.f, 50.f);
 	ground.rotaxis = glm::vec3(1.f, 0.f, 0.f);
@@ -57,7 +57,7 @@ void init() {
 	for (int i = 0; i < 3; ++i) {
 		int pi = 1 - i;
 
-		checkpoints[i] = new Checkpoint(true);
+		checkpoints[i] = new Checkpoint(false);
 		checkpoints[i]->position.x = 0.f + pi * 1.25f;
 		checkpoints[i]->position.z = -CP_BUNNY_DIST;
 	}
