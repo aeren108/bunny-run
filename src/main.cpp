@@ -13,6 +13,10 @@
 #include <glm/glm.hpp> // GL Math library header
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <GL/gl.h>   // The GL Header File
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include <map>
 
 #include "global.h"
 #include "model.h"
@@ -39,17 +43,280 @@ bool righthold = false;
 
 int score = 0;
 
+GLuint text_program, gTextVBO;
+
+/// Holds all state information relevant to a character as loaded using FreeType
+struct Character {
+    GLuint TextureID;   // ID handle of the glyph texture
+    glm::ivec2 Size;    // Size of glyph
+    glm::ivec2 Bearing;  // Offset from baseline to left/top of glyph
+    GLuint Advance;    // Horizontal offset to advance to next glyph
+};
+
+std::map<GLchar, Character> Characters;
+
+
+
+bool ReadDataFromFile(
+    const string& fileName, ///< [in]  Name of the shader file
+    string&       data)     ///< [out] The contents of the file
+{
+    fstream myfile;
+
+    // Open the input 
+    myfile.open(fileName.c_str(), std::ios::in);
+
+    if (myfile.is_open())
+    {
+        string curLine;
+
+        while (getline(myfile, curLine))
+        {
+            data += curLine;
+            if (!myfile.eof())
+            {
+                data += "\n";
+            }
+        }
+
+        myfile.close();
+    }
+    else
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+
+void createVS(GLuint& program, const string& filename)
+{
+    string shaderSource;
+
+    if (!ReadDataFromFile(filename, shaderSource))
+    {
+        cout << "Cannot find file name: " + filename << endl;
+        exit(-1);
+    }
+
+    GLint length = shaderSource.length();
+    const GLchar* shader = (const GLchar*) shaderSource.c_str();
+
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vs, 1, &shader, &length);
+    glCompileShader(vs);
+
+    char output[1024] = {0};
+    glGetShaderInfoLog(vs, 1024, &length, output);
+    printf("VS compile log: %s\n", output);
+
+    glAttachShader(program, vs);
+}
+
+void createFS(GLuint& program, const string& filename)
+{
+    string shaderSource;
+
+    if (!ReadDataFromFile(filename, shaderSource))
+    {
+        cout << "Cannot find file name: " + filename << endl;
+        exit(-1);
+    }
+
+    GLint length = shaderSource.length();
+    const GLchar* shader = (const GLchar*) shaderSource.c_str();
+
+    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fs, 1, &shader, &length);
+    glCompileShader(fs);
+
+    char output[1024] = {0};
+    glGetShaderInfoLog(fs, 1024, &length, output);
+    printf("FS compile log: %s\n", output);
+
+    glAttachShader(program, fs);
+}
+
+
+
+/*
+GLuint text_program;
+createVS(text_program, "vert_text.glsl");
+createFS(text_program, "frag_text.glsl");
+glBindAttribLocation(text_program, 2, "vertex");
+glLinkProgram(text_program);
+*/
+
+
+
+void initFonts(int windowWidth, int windowHeight)
+{
+    // Set OpenGL options
+    //glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(windowWidth), 0.0f, static_cast<GLfloat>(windowHeight));
+    glUseProgram(text_program);
+    glUniformMatrix4fv(glGetUniformLocation(text_program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    // FreeType
+    FT_Library ft;
+    // All functions return a value different than 0 whenever an error occurred
+    if (FT_Init_FreeType(&ft))
+    {
+        std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+    }
+
+    // Load font as face
+    FT_Face face;
+    if (FT_New_Face(ft, "/usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf", 0, &face))
+    {
+        std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+    }
+
+    // Set size to load glyphs as
+    FT_Set_Pixel_Sizes(face, 0, 48);
+
+    // Disable byte-alignment restriction
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); 
+
+    // Load first 128 characters of ASCII set
+    for (GLubyte c = 0; c < 128; c++)
+    {
+        // Load character glyph 
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+        {
+            std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+            continue;
+        }
+        // Generate texture
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(
+                GL_TEXTURE_2D,
+                0,
+                GL_RED,
+                face->glyph->bitmap.width,
+                face->glyph->bitmap.rows,
+                0,
+                GL_RED,
+                GL_UNSIGNED_BYTE,
+                face->glyph->bitmap.buffer
+                );
+        // Set texture options
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        // Now store character for later use
+        Character character = {
+            texture,
+            glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+            glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+            face->glyph->advance.x
+        };
+        Characters.insert(std::pair<GLchar, Character>(c, character));
+    }
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    // Destroy FreeType once we're finished
+    FT_Done_Face(face);
+    FT_Done_FreeType(ft);
+
+    //
+    // Configure VBO for texture quads
+    //
+    glGenBuffers(1, &gTextVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, gTextVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+
+
+void renderText(const std::string& text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color)
+{
+    // Activate corresponding render state	
+    glUseProgram(text_program);
+    glUniform3f(glGetUniformLocation(text_program, "textColor"), color.x, color.y, color.z);
+    glActiveTexture(GL_TEXTURE0);
+
+    // Iterate through all characters
+    std::string::const_iterator c;
+    for (c = text.begin(); c != text.end(); c++) 
+    {
+        Character ch = Characters[*c];
+
+        GLfloat xpos = x + ch.Bearing.x * scale;
+        GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+
+        GLfloat w = ch.Size.x * scale;
+        GLfloat h = ch.Size.y * scale;
+
+        // Update VBO for each character
+        GLfloat vertices[6][4] = {
+            { xpos,     ypos + h,   0.0, 0.0 },            
+            { xpos,     ypos,       0.0, 1.0 },
+            { xpos + w, ypos,       1.0, 1.0 },
+
+            { xpos,     ypos + h,   0.0, 0.0 },
+            { xpos + w, ypos,       1.0, 1.0 },
+            { xpos + w, ypos + h,   1.0, 0.0 }           
+        };
+
+        // Render glyph texture over quad
+        glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+
+        // Update content of VBO memory
+        glBindBuffer(GL_ARRAY_BUFFER, gTextVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // Be sure to use glBufferSubData and not glBufferData
+
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        // Render quad
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        // Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+
+        x += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+    }
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void init() {
     glEnable(GL_DEPTH_TEST);
 	
 	bunny = new Bunny();
 	bunny->velocity.z = -0.01f;
 
+
 	ground = Model("assets/quad.obj", "shaders/ground_frag.glsl", "shaders/ground_vert.glsl");
 	ground.pos = glm::vec3(0.f, -1.f, -50.f);
 	ground.scale = glm::vec3(2.f, 1.f, 50.f);
 	ground.rotaxis = glm::vec3(1.f, 0.f, 0.f);
 	ground.rotangle = - M_PI / 2;
+
 
 	groundLeft = ground.minpos.x;
 	groundRight = ground.maxpos.x;
@@ -63,6 +330,13 @@ void init() {
 	}
 
 	
+	createVS(text_program, "shaders/vert_text.glsl");
+	createFS(text_program, "shaders/frag_text.glsl");
+	glBindAttribLocation(text_program, 2, "vertex");
+	glLinkProgram(text_program);
+
+	initFonts(gWidth, gHeight);
+
 }
 
 void reset() {
@@ -174,6 +448,7 @@ void render() {
 	ground.render();
     bunny->render();
 	for (Checkpoint* cp : checkpoints) cp->render();
+	renderText("AAAAAAAAAAAAA", 1, 0.5, -1, glm::vec3(0, 1, 1));
 }
 
 void gameLoop(GLFWwindow* window) {
