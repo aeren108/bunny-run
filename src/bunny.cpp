@@ -2,7 +2,7 @@
 #include "bunny.h"
 
 Bunny::Bunny() {
-    model = Model("assets/bunny.obj", "shaders/frag.glsl", "shaders/vert.glsl");
+    model = Model("assets/bunny.obj", "shaders/bunny_frag.glsl", "shaders/bunny_vert.glsl");
 
     position = glm::vec3(0.f, MIN_IDLE_Y, -CAMERA_BUNNY_DIST);
     velocity = glm::vec3(0.f, 0.f, 0.f);
