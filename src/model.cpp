@@ -9,6 +9,7 @@ Model::Model(const std::string &filename, const std::string &fragfile, const std
 	
 	scale = glm::vec3(1, 1, 1); 
 	pos = glm::vec3(0, 0, 0);
+	shift = glm::vec3(0, 0, 0);
 	rotaxis = glm::vec3(0, 1, 0);
 	rotangle = 0;
 
@@ -79,12 +80,13 @@ void Model::initModel() {
 	center_ = (maxpos_ + minpos_) * 0.5f; center_.w = 1.f;
 
 	glm::mat4 matT = glm::translate(glm::mat4(1.0), pos);
+	glm::mat4 matTs = glm::translate(glm::mat4(1.0), shift);
 	glm::mat4 matS = glm::scale(glm::mat4(1.0), scale);
 	glm::mat4 matST = glm::translate(glm::mat4(1.0), -glm::vec3(center_));
 	glm::mat4 matR = glm::rotate<float>(glm::mat4(1.0), rotangle, rotaxis);
 	glm::mat4 matR_alt = glm::rotate<float>(glm::mat4(1.0), rotangle_alt, rotaxis_alt);
 
-	modelingMatrix = matT * matS * matR_alt * matR * matST;
+	modelingMatrix = matT * matTs * matS * matR_alt * matR * matST;
 
 	dimensions.x = dimensions_.x * scale.x; 
 	dimensions.y = dimensions_.y * scale.y; 
@@ -130,10 +132,6 @@ void Model::initModel() {
 	viewingMatrixLoc = glGetUniformLocation(program, "viewingMatrix");
 	projectionMatrixLoc = glGetUniformLocation(program, "projectionMatrix");
 	eyePosLoc = glGetUniformLocation(program, "eyePos");
-
-	std::cout << filename << std::endl;
-
-	std::cout << filename << std::endl;
 }
 
 void Model::render() {
@@ -145,12 +143,13 @@ void Model::render() {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(normalDataOffset));
 
 	glm::mat4 matT = glm::translate(glm::mat4(1.0), pos);
+	glm::mat4 matTs = glm::translate(glm::mat4(1.0), shift);
 	glm::mat4 matS = glm::scale(glm::mat4(1.0), scale);
 	glm::mat4 matST = glm::translate(glm::mat4(1.0), -glm::vec3(center_));
 	glm::mat4 matR = glm::rotate<float>(glm::mat4(1.0), rotangle, rotaxis);
 	glm::mat4 matR_alt = glm::rotate<float>(glm::mat4(1.0), rotangle_alt, rotaxis_alt);
 
-	modelingMatrix = matT * matS * matR_alt * matR * matST;// starting from right side, rotate around Y to turn back, then rotate around Z some more at each frame, then translate.
+	modelingMatrix = matT * matTs * matS * matR_alt * matR * matST;// starting from right side, rotate around Y to turn back, then rotate around Z some more at each frame, then translate.
 
 	dimensions.x = dimensions_.x * scale.x; 
 	dimensions.y = dimensions_.y * scale.y; 

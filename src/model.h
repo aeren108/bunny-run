@@ -61,6 +61,7 @@ public:
 
 	glm::vec3 scale;
 	glm::vec3 pos;
+	glm::vec3 shift;
 	glm::vec3 rotaxis;
 	glm::vec3 rotaxis_alt;
 	float rotangle;

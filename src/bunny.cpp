@@ -45,6 +45,7 @@ void Bunny::update() {
         }
     } else if (state == Bunny::DEAD) {
         model.rotangle_alt = M_PI / 2;
+        model.shift = glm::vec3(0.2f, -0.1f, 0.f);
         velocity = glm::vec3(0.f);
     }
 
@@ -66,6 +67,7 @@ void Bunny::reset() {
     model.rotaxis = glm::vec3(0.f, 1.f, 0.f);
     model.rotangle = - M_PI / 2;
     model.rotangle_alt = 0;
+    model.shift = glm::vec3(0);
 
     velocity = glm::vec3(0.f, 0.f, INITIAL_VELZ);
     hopVel = INITIAL_HOP_VEL;
