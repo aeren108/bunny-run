@@ -83,10 +83,8 @@ void Model::initModel() {
 	glm::mat4 matST = glm::translate(glm::mat4(1.0), -glm::vec3(center_));
 	glm::mat4 matR = glm::rotate<float>(glm::mat4(1.0), rotangle, rotaxis);
 	glm::mat4 matR_alt = glm::rotate<float>(glm::mat4(1.0), rotangle_alt, rotaxis_alt);
-	glm::mat4 matT_ra = glm::translate(glm::mat4(1.0), -glm::vec3(shift_alt))
-	glm::mat4 matT_rai = glm::translate(glm::mat4(1.0), glm::vec3(shift_alt))
 
-	modelingMatrix = matT * matS * matT_rai * matR_alt * matT_ra * matR * matST;
+	modelingMatrix = matT * matS * matR_alt * matR * matST;
 
 	dimensions.x = dimensions_.x * scale.x; 
 	dimensions.y = dimensions_.y * scale.y; 
@@ -151,10 +149,8 @@ void Model::render() {
 	glm::mat4 matST = glm::translate(glm::mat4(1.0), -glm::vec3(center_));
 	glm::mat4 matR = glm::rotate<float>(glm::mat4(1.0), rotangle, rotaxis);
 	glm::mat4 matR_alt = glm::rotate<float>(glm::mat4(1.0), rotangle_alt, rotaxis_alt);
-	glm::mat4 matT_ra = glm::translate(glm::mat4(1.0), -glm::vec3(shift_alt))
-	glm::mat4 matT_rai = glm::translate(glm::mat4(1.0), glm::vec3(shift_alt))
-	
-	modelingMatrix = matT * matS * matT_rai * matR_alt * matT_ra * matR * matST;// starting from right side, rotate around Y to turn back, then rotate around Z some more at each frame, then translate.
+
+	modelingMatrix = matT * matS * matR_alt * matR * matST;// starting from right side, rotate around Y to turn back, then rotate around Z some more at each frame, then translate.
 
 	dimensions.x = dimensions_.x * scale.x; 
 	dimensions.y = dimensions_.y * scale.y; 
