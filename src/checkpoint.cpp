@@ -7,7 +7,7 @@ Checkpoint::Checkpoint(bool hostile) : hostile(hostile) {
     if (hostile) model = Model("assets/cube.obj", "shaders/hcube_frag.glsl", "shaders/hcube_vert.glsl");
     else model = Model("assets/cube.obj", "shaders/cube_frag.glsl", "shaders/cube_vert.glsl");
     
-    position = glm::vec3(0.f, ENTITY_Y + 0.25f, -1.35f);
+    position = glm::vec3(0.f, ENTITY_Y + 0.25f, -15.0f);
     model.scale = glm::vec3(0.2f, 0.5f, 0.2f);
     model.pos = position;
 }

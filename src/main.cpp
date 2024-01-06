@@ -178,8 +178,8 @@ void render() {
 
 void gameLoop(GLFWwindow* window) {
     while (!glfwWindowShouldClose(window)) {
-        update();
 		render();
+		update();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

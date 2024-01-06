@@ -41,6 +41,7 @@ void Bunny::update() {
     } else if (state == Bunny::DEAD) {
         model.rotaxis = glm::vec3(1.f, 0.f, 1.f);
         model.rotangle = - M_PI / 2;
+        velocity.y = 0;
     }
 
     //Check boundary collisions
