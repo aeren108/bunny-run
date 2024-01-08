@@ -7,11 +7,15 @@ Simple game developed with openGL for CENG477 Introduction to Computer Graphics 
 #Running the game
 
 Dependencies:
+
     glfw
     opengl
     firacode font
 
 To run:
 
-    make
+    git clone https://github.com/aeren108/bunny-run.git
+    cd bunny-run
+
+    make game
     ./main
