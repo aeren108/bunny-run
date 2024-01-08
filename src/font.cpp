@@ -39,7 +39,7 @@ void initFonts(int windowWidth, int windowHeight) {
     
     // Load font as face
     FT_Face face;
-    if (FT_New_Face(ft, "/usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf", 0, &face))
+    if (FT_New_Face(ft, "/usr/share/fonts/TTF/FiraCode-Regular.ttf", 0, &face))
     {
         std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
     }
