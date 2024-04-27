@@ -4,7 +4,7 @@ Simple game developed with openGL for CENG477 Introduction to Computer Graphics 
 
 ![Screenshot](ss.png)
 
-#Running the game
+# Running the game
 
 Dependencies:
 
